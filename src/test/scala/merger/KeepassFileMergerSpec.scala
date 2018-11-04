@@ -1,10 +1,12 @@
 package merger
 
-import de.slackspace.openkeepass.domain.{GroupBuilder, KeePassFileBuilder, EntryBuilder => KPEB}
+import de.slackspace.openkeepass.domain.{Entry, GroupBuilder, KeePassFileBuilder, EntryBuilder => KPEB}
 import org.scalatest.{FlatSpec, Matchers}
 class KeepassFileMergerSpec extends FlatSpec with Matchers {
-  "merge" should "merge two Keepass files" in {
-    val merged = new KeepassFileMerger().merge(first, second)
+  implicit lazy val leftEntriesConflictStrategy: ConflictStrategy[String, Entry] = (_: String, left: Entry, _: Entry) => left
+  import KeepassFileMerger.groupConflictStrategy
+  "Keepass file merger" should "merge two Keepass files" in {
+    val merged = new KeepassFileMerger("").merge(first, second)
     merged.getEntries.size() shouldBe 3
     val banking = merged.getGroupByName("Banking")
     banking.getEntries.size() shouldBe 2

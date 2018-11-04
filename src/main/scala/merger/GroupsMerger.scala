@@ -5,10 +5,9 @@ import de.slackspace.openkeepass.domain.{Entry, Group, GroupBuilder}
 import collection.JavaConverters._
 import scala.collection.mutable
 
-object GroupsMerger extends Merger[Group, String, (Seq[Entry], Seq[Group])] {
-  type GroupContents = (Seq[Entry], Seq[Group])
+import GroupsMerger.GroupContents
 
-  import EntriesMerger._
+class GroupsMerger(implicit conflictStrategy: ConflictStrategy[String, GroupContents]) extends Merger[Group, String, GroupContents] {
 
   override implicit lazy val keyValueExtractor: KeyValueExtractor[Group, String, GroupContents] = new KeyValueExtractor[Group, String, GroupContents] {
 
@@ -26,11 +25,8 @@ object GroupsMerger extends Merger[Group, String, (Seq[Entry], Seq[Group])] {
       value._2.foreach(builder.addGroup)
       builder.build()
     }
+}
 
-  implicit lazy val groupConflictStrategy: ConflictStrategy[String, GroupContents] =
-    (_: String, left: GroupContents, right: GroupContents) => {
-      val mergedEntries = EntriesMerger.merge(left._1, right._1)
-      val mergedGroups = GroupsMerger.merge(left._2, right._2)(groupConflictStrategy)
-      (mergedEntries, mergedGroups)
-    }
+object GroupsMerger {
+  type GroupContents = (Seq[Entry], Seq[Group])
 }
